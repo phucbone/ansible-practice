@@ -8,13 +8,15 @@
       ansible.builtin.lineinfile:
         path: /etc/hosts
         line: "192.168.1.130 es-prd-01"
-        create: yes
+        create: true
+        mode: "0400"
 
     - name: Add multi-host
       ansible.builtin.lineinfile:
         path: /etc/hosts
         line: "{{ item }}"
-        create: yes
+        create: true
+        mode: "0400"
       with_items:
         - "192.168.1.130 es-prd-01"
         - "192.168.1.140 es-prd-02"

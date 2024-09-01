@@ -1,0 +1,43 @@
+---
+- name: Add new devops user
+  hosts: all
+  become: true
+  tasks:
+
+    - name: Create devops user
+      ansible.builtin.user:
+        name: devops
+        groups: root,sudo,devops
+        append: yes
+        create_home: yes
+        shell: /bin/bash
+        expires: -1
+        generate_ssh_key: yes
+        ssh_key_type: ed25519
+        ssh_key_bits: 2048
+        ssh_key_file: .ssh/id_rsa
+        ssh_key_comment: devops
+
+    - name: Add ssh key for devops user
+      ansible.builtin.authorized_key:
+        user: devops
+        key: ""
+
+    - name: Add sudoers file for devops user
+      ansible.builtin.copy:
+        src: /etc/ansible/files/sudoers_devops
+        dest: /etc/sudoers.d/devops
+        owner: root
+        group: root
+        mode: 0440
+
+    - name: Add a line to a file if the file does not exist
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        line: "{{ item }}"
+        create: yes
+      with_items:
+        - "192.168.1.130 es-prd-01"
+        - "192.168.1.140 es-prd-02"
+        - "192.168.1.150 es-prd-03"
+        - "192.168.1.160 es-prd-04"

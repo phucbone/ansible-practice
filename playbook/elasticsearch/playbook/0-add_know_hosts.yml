@@ -1,0 +1,29 @@
+---
+- name: Add hosts and known_hosts
+  hosts: all
+  become: true
+  tasks:
+
+    - name: Add a line to a file if the file does not exist
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        line: "{{ item }}"
+        create: true
+        mode: "0600"
+      with_items:
+        - "192.168.1.130 es-prd-01"
+        - "192.168.1.140 es-prd-02"
+        - "192.168.1.150 es-prd-03"
+        - "192.168.1.160 es-prd-04"
+
+    - name: Add several known_hosts it might want to ssh to
+      ansible.builtin.known_hosts:
+        name: "{{ item.name }}"
+        key: "{{ item.key }}"
+        path: /etc/ssh/ssh_known_hosts
+        state: present
+      loop:
+        - { name: '192.168.1.20', key: 'es-prd-01,192.168.1.20 ssh-rsa ASDeararAIUHI324324' }
+        - { name: '192.168.1.30', key: 'es-prd-02,192.168.1.30 ssh-rsa ASDeararAIUHI324324' }
+        - { name: '192.168.1.40', key: 'es-prd-03,192.168.1.40 ssh-rsa ASDeararAIUHI324324' }
+        - { name: '192.168.1.50', key: 'es-prd-04,192.168.1.50 ssh-rsa ASDeararAIUHI324324' }
