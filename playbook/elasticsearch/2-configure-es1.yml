@@ -1,0 +1,60 @@
+---
+- name: Configure Elasticsearch node 1
+  hosts: ts-prd-01
+  become: true
+  tasks:
+
+    - name: Replace a localhost entry searching for a literal string to avoid escaping
+      ansible.builtin.lineinfile:
+        path: /etc/elasticsearch/elasticsearch.yml
+        regex: "{{ regex }}"
+        insertafter: "{{ insertafter }}"
+        line: "{{ line }}"
+      loop:
+        - { regex: '^#cluster.name: ', insertafter: '^#cluster.name: ', line: 'cluster.name: es-for-data' }
+        - { regex: '^#node.name: ', insertafter: '^#node.name: ', line: 'node.name: es-prd-01' }
+        - { regex: '^#network.host: ', insertafter: '^#network.host: ', line: 'network.host: 192.168.1.20' }
+        - { regex: '^#http.port: ', insertafter: '^#http.port: ', line: 'http.port: 9200' }
+        - { regex: '^#transport.host: ', insertafter: '^#transport.host: ', line: 'transport.host: 0.0.0.0' }
+        - { regex: '^#discovery.seed_hosts: ', insertafter: '^#discovery.seed_hosts: ', line: 'discovery.seed_hosts:' }
+
+    - name: Start Elasticsearch Service
+      ansible.builtin.systemd_service:
+        name: elasticsearch
+        state: started
+
+    - name: Reset elasticsearch passwod
+      ansible.builtin.shell:
+        chdir: /usr/share/elasticsearch/bin/
+        cmd: echo "dnsdud2022!" | ./elasticsearch-reset-password -i -u elastic --stdin
+
+    - name: Check status
+      ansible.builtin.command:
+        cmd: curl -k -u elastic:dnsdud2022! https://192.168.1.20:9200/
+      register: check_status
+
+    - name: Check status cluster
+      ansible.builtin.command:
+        cmd: curl -k -u elastic:dnsdud2022! https://192.168.1.20:9200/_cluster/health?pretty
+      register: check_status
+
+    - name: Create file elasticsearch-enrollment-token
+      ansible.builtin.file:
+        path: /usr/share/elasticsearch/bin/elasticsearch-enrollment-token
+        owner: root
+        group: root
+        mode: '0644'
+      delegate_to: localhost
+
+    - name: Create elasticsearch token for joining from other nodes
+      ansible.builtin.command:
+        cmd: ./elasticsearch-create-enrollment-token -s node
+      register: create_token
+      args:
+        chdir: /usr/share/elasticsearch/bin/
+
+    - name: Print elasticsearch token to file
+      ansible.builtin.copy:
+        content: "{{create_token.stdout}}"
+        dest: /usr/share/elasticsearch/bin/elasticsearch-enrollment-token
+      delegate_to: localhost

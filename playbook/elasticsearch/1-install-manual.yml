@@ -1,0 +1,34 @@
+---
+- name: Download and install the Elasticsearch package manually
+  hosts: all
+  become: true
+  vars:
+    es_ver: "7.17.23"
+    es_dir: "/opt/tools/elasticsearch"
+  tasks:
+
+    - name: Update apt cache and Install dependencies package
+      ansible.builtin.apt:
+        pkg:
+          - apt-transport-https
+          - net-tools
+          - jq
+          - tree
+          - wget
+          - python3
+        state: latest
+        update_cache: yes
+
+    - name: Download .deb with version {{ es_ver }}
+      ansible.builtin.get_url:
+        url: "{{ item }}"
+        dest: "{{ es_dir }}"
+        mode: '0755'
+      with_items:
+        - "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{ es_ver }}-amd64.deb"
+        - "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{ es_ver }}-amd64.deb.sha512"
+
+    - name: Use sha512 to calculate the checksum
+      ansible.builtin.stat:
+        path: "{{ es_dir }}/elasticsearch-{{ es_ver }}-amd64.deb.sha512"
+        checksum_algorithm: sha512
