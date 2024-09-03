@@ -1,0 +1,26 @@
+---
+# https://docs.ansible.com/ansible/latest/collections/ansible/builtin/apt_module.html#ansible-collections-ansible-builtin-apt-module
+- name: Apt module (Manages apt-packages)
+  hosts: all
+  become: true
+  tasks:
+
+    - name: Run the equivalent of "apt-get update" as a separate step
+      ansible.builtin.apt:
+        update_cache: true       # Run the equivalent of apt-get update before the operation
+
+    - name: Install a package
+      ansible.builtin.apt:
+        name: net-tools
+        update_cache: true
+
+    - name: Install list of packages
+      ansible.builtin.apt:
+        pkg:
+          - apt-transport-https
+          - net-tools
+          - jq
+          - tree
+          - wget
+          - python3
+        update_cache: true

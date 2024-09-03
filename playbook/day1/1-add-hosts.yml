@@ -1,0 +1,24 @@
+---
+- name: Add host(s) to /etc/hosts (lineinfile module)
+  hosts: all
+  become: true
+  tasks:
+
+    - name: Add a host
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        line: "192.168.1.130 es-prd-01"
+        create: true
+        mode: "0400"
+
+    - name: Add multi-host
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        line: "{{ item }}"
+        create: true
+        mode: "0400"
+      with_items:
+        - "192.168.1.130 es-prd-01"
+        - "192.168.1.140 es-prd-02"
+        - "192.168.1.150 es-prd-03"
+        - "192.168.1.160 es-prd-04"

@@ -1,0 +1,29 @@
+---
+- name: Add hosts
+  hosts: all
+  become: true
+  tasks:
+
+    - name: Add serveral lines to /etc/hosts
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        line: "{{ item }}"
+        create: true
+        mode: "0600"
+      with_items:
+        - "192.168.1.130 ts-prd-01"
+        - "192.168.1.140 ts-prd-02"
+        - "192.168.1.150 ts-prd-03"
+        - "192.168.1.160 ts-prd-04"
+
+    # - name: Add several known_hosts it might want to ssh to
+    #   ansible.builtin.known_hosts:
+    #     name: "{{ item.name }}"
+    #     key: "{{ item.key }}"
+    #     path: /etc/ssh/ssh_known_hosts
+    #     state: present
+    #   loop:
+    #     - { name: '192.168.1.130', key: 'ts-prd-01,192.168.1.130 ssh-rsa ASDeararAIUHI324324' }
+    #     - { name: '192.168.1.140', key: 'ts-prd-02,192.168.1.140 ssh-rsa ASDeararAIUHI324324' }
+    #     - { name: '192.168.1.150', key: 'ts-prd-03,192.168.1.150 ssh-rsa ASDeararAIUHI324324' }
+    #     - { name: '192.168.1.160', key: 'ts-prd-04,192.168.1.160 ssh-rsa ASDeararAIUHI324324' }

@@ -1,0 +1,24 @@
+---
+- name: Add known_host(s) (known_hosts module)
+  hosts: all
+  become: true
+  tasks:
+
+    - name: Add a known_hosts
+      ansible.builtin.known_hosts:
+        name: "192.168.1.130"
+        key: "es-prd-01,192.168.1.130 ssh-rsa ASDeararAIUHI324324"
+        path: /etc/ssh/ssh_known_hosts
+        state: present
+
+    - name: Add several known_hosts
+      ansible.builtin.known_hosts:
+        name: "{{ item.name }}"
+        key: "{{ item.key }}"
+        path: /etc/ssh/ssh_known_hosts
+        state: present
+      loop:
+        - { name: '192.168.1.130', key: 'es-prd-01,192.168.1.130 ssh-rsa ASDeararAIUHI324324' }
+        - { name: '192.168.1.140', key: 'es-prd-02,192.168.1.140 ssh-rsa ASDeararAIUHI324324' }
+        - { name: '192.168.1.150', key: 'es-prd-03,192.168.1.150 ssh-rsa ASDeararAIUHI324324' }
+        - { name: '192.168.1.160', key: 'es-prd-04,192.168.1.160 ssh-rsa ASDeararAIUHI324324' }
