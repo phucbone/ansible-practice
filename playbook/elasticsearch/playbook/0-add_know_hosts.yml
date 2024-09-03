@@ -4,7 +4,7 @@
   become: true
   tasks:
 
-    - name: Add a line to a file if the file does not exist
+    - name: Add serveral lines to /etc/hosts
       ansible.builtin.lineinfile:
         path: /etc/hosts
         line: "{{ item }}"

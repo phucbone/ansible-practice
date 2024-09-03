@@ -30,15 +30,3 @@
         owner: root
         group: root
         mode: "0440"
-
-    - name: Add a line to a file if the file does not exist
-      ansible.builtin.lineinfile:
-        path: /etc/hosts
-        line: "{{ item }}"
-        create: true
-        mode: "0440"
-      with_items:
-        - "192.168.1.130 ts-prd-01"
-        - "192.168.1.140 ts-prd-02"
-        - "192.168.1.150 ts-prd-03"
-        - "192.168.1.160 ts-prd-04"
