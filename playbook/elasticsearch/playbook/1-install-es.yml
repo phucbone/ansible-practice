@@ -18,10 +18,6 @@
       register: install_dependencies_data
       changed_when: install_dependencies_data.rc != 0
 
-    # - name: Print 1
-    #   ansible.builtin.debug:
-    #     var: install_dependencies_data
-
     - name: Check ES directories exists
       ansible.builtin.stat:
         path: "{{ item }}"
@@ -33,10 +29,6 @@
         - "{{ es_log_dir }}"
         - "{{ es_backup_dir }}"
 
-    # - name: Print
-    #   ansible.builtin.debug:
-    #     var: es_dirs_data.results
-
     - name: Create ES directories if it not exists
       ansible.builtin.file:
         path: "{{ item.item }}"
@@ -45,21 +37,44 @@
         group: root
         mode: "0775"
       loop: "{{ es_dirs_data.results }}"
+      when: not item.stat.exists
 
-    # - name: Download .deb with version {{ es_ver }}
-    #   ansible.builtin.get_url:
-    #     url: "{{ item }}"
-    #     dest: "{{ es_dir }}"
-    #     mode: "0755"
-    #   with_items:
-    #     - "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{ es_ver }}-amd64.deb"
-    #     - "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{ es_ver }}-amd64.deb.sha512"
+    - name: Check ES setup directory exists
+      ansible.builtin.stat:
+        path: "{{ es_setup_dir }}"
+      register: es_setup_dir_data
 
-    # - name: Use sha512 to calculate the checksum
-    #   ansible.builtin.stat:
-    #     path: "{{ es_dir }}/elasticsearch-{{ es_ver }}-amd64.deb.sha512"
-    #     checksum_algorithm: sha512
+    - name: Check ES setup file exists
+      ansible.builtin.stat:
+        path: "{{ es_setup_dir }}/elasticsearch-{{ es_ver }}-amd64.deb"
+      register: es_setup_file_data
 
-    # - name: Install a .deb package
-    #   ansible.builtin.apt:
-    #     deb: "{{ es_dir }}/elasticsearch-{{ es_ver }}-amd64.deb"
+    - name: Download .deb file if it not exists
+      ansible.builtin.get_url:
+        url: "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{ es_ver }}-amd64.deb"
+        dest: "{{ es_setup_dir }}/elasticsearch-{{ es_ver }}-amd64.deb"
+        checksum: "sha512:https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{ es_ver }}-amd64.deb.sha512"
+        mode: "0755"
+        validate_certs: false
+      when: es_setup_dir_data.stat.exists and not es_setup_file_data.stat.exists
+
+    - name: Get packages
+      ansible.builtin.shell: |
+        dpkg-query -f '${binary:Package}\n' -W
+      register: packages
+      changed_when: packages.rc != 0
+
+    - name: Print packages
+      ansible.builtin.debug:
+        msg: "{{ packages | community.general.json_query(\"stdout_lines[?contains(@, 'elasticsearch')]\") }}"
+
+    # - name: Install ES with .deb package
+    #   ansible.builtin.shell: |
+    #     dpkg -i {{ es_setup_dir }}/elasticsearch-{{ es_ver }}-amd64.deb
+    #   when: packages | community.general.json_query("stdout_lines[?contains(@, 'elasticsearch')]") != ""
+    #   register: es_deb
+    #   changed_when: es_deb.rc != 0
+
+    # - name: Print 2
+    #   ansible.builtin.debug:
+    #     var: es_deb
