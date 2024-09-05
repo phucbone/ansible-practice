@@ -1,0 +1,65 @@
+---
+- name: Download and install the Elasticsearch
+  hosts: all
+  become: true
+  vars:
+    es_dir: "/opt/elasticsearch"
+    es_work_dir: "{{ es_dir }}/running"
+    es_setup_dir: "{{ es_dir }}/setup"
+    es_log_dir: "{{ es_dir }}/log"
+    es_backup_dir: "{{ es_dir }}/backup"
+    es_ver: "7.10.1"
+
+  tasks:
+    - name: Install dependencies packages
+      ansible.builtin.shell: |
+        apt update
+        apt install -y apt-transport-https net-tools jq tree wget python3
+      register: install_dependencies_data
+      changed_when: install_dependencies_data.rc != 0
+
+    # - name: Print 1
+    #   ansible.builtin.debug:
+    #     var: install_dependencies_data
+
+    - name: Check ES directories exists
+      ansible.builtin.stat:
+        path: "{{ item }}"
+      register: es_dirs_data
+      loop:
+        - "{{ es_dir }}"
+        - "{{ es_work_dir }}"
+        - "{{ es_setup_dir }}"
+        - "{{ es_log_dir }}"
+        - "{{ es_backup_dir }}"
+
+    # - name: Print
+    #   ansible.builtin.debug:
+    #     var: es_dirs_data.results
+
+    - name: Create ES directories if it not exists
+      ansible.builtin.file:
+        path: "{{ item.item }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0775"
+      loop: "{{ es_dirs_data.results }}"
+
+    # - name: Download .deb with version {{ es_ver }}
+    #   ansible.builtin.get_url:
+    #     url: "{{ item }}"
+    #     dest: "{{ es_dir }}"
+    #     mode: "0755"
+    #   with_items:
+    #     - "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{ es_ver }}-amd64.deb"
+    #     - "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{ es_ver }}-amd64.deb.sha512"
+
+    # - name: Use sha512 to calculate the checksum
+    #   ansible.builtin.stat:
+    #     path: "{{ es_dir }}/elasticsearch-{{ es_ver }}-amd64.deb.sha512"
+    #     checksum_algorithm: sha512
+
+    # - name: Install a .deb package
+    #   ansible.builtin.apt:
+    #     deb: "{{ es_dir }}/elasticsearch-{{ es_ver }}-amd64.deb"

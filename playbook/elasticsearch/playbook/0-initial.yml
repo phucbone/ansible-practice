@@ -1,0 +1,52 @@
+---
+- name: Initial server
+  hosts: all
+  become: true
+  vars:
+    new_user: "devops"
+  tasks:
+
+    - name: Add serveral lines to /etc/hosts
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        line: "{{ item }}"
+        create: true
+        mode: "0600"
+      with_items:
+        - "192.168.1.130 es-prd-01"
+        - "192.168.1.140 es-prd-02"
+        - "192.168.1.150 es-prd-03"
+        - "192.168.1.160 es-prd-04"
+
+    - name: Create new user
+      ansible.builtin.user:
+        name: "{{ new_user }}"
+        groups: "{{ new_user }},root,sudo"
+        append: true
+        create_home: true
+        shell: /bin/bash
+        expires: -1
+
+    # - name: Check .ssh directory exists
+    #   ansible.builtin.stat:
+    #     path: "/home/{{ new_user }}/.ssh/"
+    #   register: ssh_dir_data
+
+    # - name: Create .ssh directory if it not exists
+    #   ansible.builtin.file:
+    #     path: "/home/{{ new_user }}/.ssh/"
+    #     state: directory
+    #     mode: "0700"
+    #   when: not ssh_dir_data.stat.exists
+
+    - name: Check sudoers file exists
+      ansible.builtin.stat:
+        path: "/etc/sudoers.d/{{ new_user }}"
+      register: create_user_data
+
+    - name: Create sudoers for new user
+      ansible.builtin.copy:
+        dest: "/etc/sudoers.d/{{ new_user }}"
+        mode: "0400"
+        content: "{{ new_user }}   ALL=(ALL)     NOPASSWD: ALL"
+      when: not create_user_data.stat.exists
