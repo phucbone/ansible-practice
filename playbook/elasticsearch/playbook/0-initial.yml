@@ -1,5 +1,5 @@
 ---
-- name: Initial server
+- name: Initial servers
   hosts: all
   become: true
   vars:
@@ -18,7 +18,7 @@
         - "192.168.1.150 es-prd-03"
         - "192.168.1.160 es-prd-04"
 
-    - name: Create new user
+    - name: Create user {{ new_user }}
       ansible.builtin.user:
         name: "{{ new_user }}"
         groups: "{{ new_user }},root,sudo"
@@ -39,12 +39,20 @@
     #     mode: "0700"
     #   when: not ssh_dir_data.stat.exists
 
-    - name: Check sudoers file exists
+    - name: Check sudoers file exists /etc/sudoers.d/{{ new_user }}
       ansible.builtin.stat:
         path: "/etc/sudoers.d/{{ new_user }}"
       register: create_user_data
 
-    - name: Create sudoers for new user
+    # - name: Validate the sudoers file before saving
+    #   ansible.builtin.lineinfile:
+    #     path: "/etc/sudoers.d/{{ new_user }}"
+    #     state: present
+    #     regexp: "^{{ new_user }}   ALL=(ALL)     NOPASSWD: ALL"
+    #     line: "{{ new_user }}   ALL=(ALL)     NOPASSWD: ALL"
+    #     validate: /usr/sbin/visudo -cf %s
+
+    - name: Create sudoers file for {{ new_user }}
       ansible.builtin.copy:
         dest: "/etc/sudoers.d/{{ new_user }}"
         mode: "0400"

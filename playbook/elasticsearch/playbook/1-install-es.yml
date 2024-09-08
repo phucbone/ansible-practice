@@ -3,11 +3,14 @@
   hosts: all
   become: true
   vars:
+    install_tool: "elasticsearch"
     es_dir: "/opt/elasticsearch"
-    es_work_dir: "{{ es_dir }}/running"
     es_setup_dir: "{{ es_dir }}/setup"
+    es_data_dir: "{{ es_dir }}/data"
+    es_data_node_dir: "{{ es_data_dir }}/node"
     es_log_dir: "{{ es_dir }}/log"
     es_backup_dir: "{{ es_dir }}/backup"
+    es_user: "elasticsearch"
     es_ver: "7.10.1"
 
   tasks:
@@ -24,8 +27,9 @@
       register: es_dirs_data
       loop:
         - "{{ es_dir }}"
-        - "{{ es_work_dir }}"
+        - "{{ es_data_node_dir }}"
         - "{{ es_setup_dir }}"
+        - "{{ es_data_dir }}"
         - "{{ es_log_dir }}"
         - "{{ es_backup_dir }}"
 
@@ -39,7 +43,7 @@
       loop: "{{ es_dirs_data.results }}"
       when: not item.stat.exists
 
-    - name: Check ES setup directory exists
+    - name: Check directory exists {{ es_setup_dir }}
       ansible.builtin.stat:
         path: "{{ es_setup_dir }}"
       register: es_setup_dir_data
@@ -58,23 +62,51 @@
         validate_certs: false
       when: es_setup_dir_data.stat.exists and not es_setup_file_data.stat.exists
 
-    - name: Get packages
-      ansible.builtin.shell: |
-        dpkg-query -f '${binary:Package}\n' -W
-      register: packages
-      changed_when: packages.rc != 0
+    - name: Check ES installed or not
+      ansible.builtin.shell:
+      args:
+        executable: /bin/bash
+        cmd: |
+          set -o pipefail
+          dpkg-query -f '${binary:Package}\n' -W | grep {{ install_tool }}
+      register: es_installed
+      # ignore_errors: true
+      # failed_when: es_installed.rc != 1 and es_installed.rc != 0
+      failed_when: es_installed.rc not in [0, 1]
+      changed_when: es_installed.rc not in [0, 1]
 
-    - name: Print packages
-      ansible.builtin.debug:
-        msg: "{{ packages | community.general.json_query(\"stdout_lines[?contains(@, 'elasticsearch')]\") }}"
-
-    # - name: Install ES with .deb package
-    #   ansible.builtin.shell: |
-    #     dpkg -i {{ es_setup_dir }}/elasticsearch-{{ es_ver }}-amd64.deb
-    #   when: packages | community.general.json_query("stdout_lines[?contains(@, 'elasticsearch')]") != ""
-    #   register: es_deb
-    #   changed_when: es_deb.rc != 0
-
-    # - name: Print 2
+    # - name: Print 1
     #   ansible.builtin.debug:
-    #     var: es_deb
+    #     var: es_installed
+
+    # - name: Check ES installed
+    #   vars:
+    #     filter_json: "{{ packages | community.general.json_query(\"stdout_lines[?contains(@, 'elasticsearch')]\") }}"
+    #   ansible.builtin.set_fact:
+    #     es_installed: "{{ true if filter_json | length > 0 else false }}"
+
+    # - name: Result of checking ES installed
+    #   ansible.builtin.debug:
+    #     var: es_installed
+
+    - name: Install ES with .deb package {{ es_ver }}
+      ansible.builtin.shell: |
+        dpkg -i {{ es_setup_dir }}/elasticsearch-{{ es_ver }}-amd64.deb
+      when: es_installed.msg != install_tool
+      register: es_deb
+      changed_when: es_deb.rc != 0
+
+    - name: Grant privileges ES directories for {{ es_user }}
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ es_user }}"
+        group: "{{ es_user }}"
+        mode: "0770"
+      with_items:
+        - "{{ es_dir }}"
+        - "{{ es_data_node_dir }}"
+        - "{{ es_setup_dir }}"
+        - "{{ es_data_dir }}"
+        - "{{ es_log_dir }}"
+        - "{{ es_backup_dir }}"
