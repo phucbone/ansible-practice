@@ -1,0 +1,25 @@
+elasticsearch_version: 7.9.1
+
+elasticsearch_tarball: elasticsearch-7.9.1-linux-x86_64.tar.gz
+
+java_package: openjdk-11-jdk
+
+cluster_name: es_cluster
+
+node_name_prefix: es_node
+
+network_host: 0.0.0.0
+
+discovery_seed_hosts:
+  - 192.168.1.101
+  - 192.168.1.102
+  - 192.168.1.103
+
+cluster_initial_master_nodes:
+  - 192.168.1.101
+  # - 192.168.1.102
+  # - 192.168.1.103
+
+path_data: /opt/elasticsearch/data
+
+path_logs: /opt/elasticsearch/logs

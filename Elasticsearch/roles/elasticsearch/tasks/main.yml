@@ -1,0 +1,112 @@
+---
+- name: Install required dependencies
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - libcurl4
+    - apt-transport-https
+    - wget
+
+- name: Install JDK
+  unarchive:
+    src: "{{ role_path }}/files/{{ jdk_tarball }}"
+    dest: /usr/local/
+    remote_src: yes
+
+- name: Create elasticsearch group
+  group:
+    name: elasticsearch
+    state: present
+
+- name: Create elasticsearch user
+  user:
+    name: elasticsearch
+    group: elasticsearch
+    home: /home/elasticsearch
+    shell: /bin/bash
+    create_home: yes
+    state: present
+
+- name: Add elasticsearch user to sudo group
+  user:
+    name: elasticsearch
+    groups: sudo
+    append: yes
+
+# - name: Allow elasticsearch user to run sudo without password
+#   lineinfile:
+#     path: /etc/sudoers
+#     regexp: "^elasticsearch"
+#     line: "elasticsearch ALL=(ALL) NOPASSWD:ALL"
+#     state: present
+#     validate: "visudo -cf %s"
+
+- name: Create sudoers file for elasticsearch user
+  copy:
+    dest: /etc/sudoers.d/elasticsearch
+    content: "elasticsearch ALL=(ALL) NOPASSWD:ALL\n"
+    owner: root
+    group: root
+    mode: '0440'
+  validate: "visudo -cf %s"
+
+
+- name: Set permissions for Elasticsearch directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: elasticsearch
+    group: elasticsearch
+    mode: '0755'
+  with_items:
+    - /opt/elasticsearch
+    - "{{ path_data }}"
+    - "{{ path_logs }}"
+
+- name: Set Java environment variables
+  lineinfile:
+    path: /etc/environment
+    line: "{{ item }}"
+    create: yes
+  with_items:
+    - "JAVA_HOME=/usr/local/jdk-11.0.16"
+    - "PATH=$PATH:/usr/local/jdk-11.0.16/bin"
+  notify: Reload environment
+
+- name: Extract Elasticsearch tarball
+  unarchive:
+    src: "{{ role_path }}/files/{{ elasticsearch_tarball }}"
+    dest: /opt
+    remote_src: yes
+
+- name: Create data and log directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: elasticsearch
+    group: elasticsearch
+    mode: '0755'
+  with_items:
+    - "{{ path_data }}"
+    - "{{ path_logs }}"
+
+- name: Configure Elasticsearch
+  template:
+    src: elasticsearch.yml.j2
+    dest: /opt/elasticsearch-{{ elasticsearch_version }}/config/elasticsearch.yml
+    owner: elasticsearch
+    group: elasticsearch
+    mode: '0644'
+
+- name: Configure systemd service
+  template:
+    src: elasticsearch.service.j2
+    dest: /etc/systemd/system/elasticsearch.service
+    mode: '0644'
+
+- name: Enable and start Elasticsearch service
+  systemd:
+    name: elasticsearch
+    enabled: yes
+    state: started
