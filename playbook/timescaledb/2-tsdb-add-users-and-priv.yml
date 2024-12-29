@@ -1,0 +1,56 @@
+---
+
+- name: Add db, users and grant privileges permission
+  hosts: all
+  become: true
+  vars:
+    tsdb_user: "postgres"
+    tsdb_pass: "postgres"
+    tsdb_dbname: "sop"
+
+  tasks:
+    - name: Utility present
+      ansible.builtin.package:
+        name: python3-psycopg2
+        state: present
+
+    - name: Add users
+      community.postgresql.postgresql_user:
+        login_user: "{{ tsdb_user }}"
+        name: "{{ item.name }}"
+        password: "{{ item.password }}"
+        expires: "infinity"
+        become: true
+        become_user: "{{ tsdb_user }}"
+      loop:
+        - { name: "admin", password: "msplus2024!" }
+        - { name: "devportal", password: "sre2024!" }
+        - { name: "sreplus", password: "dnsdud2024!" }
+
+    - name: Run SQL query
+      community.postgresql.postgresql_query:
+        db: "{{ tsdb_dbname }}"
+        query: "SELCT version()"
+        become: true
+        become_user: "{{ tsdb_user }}"
+        register: tsdb_query_data
+
+    - name: Print result of query
+      ansible.builtin.debug:
+        var: tsdb_query_data
+
+
+
+
+
+- name: Add the TimescaleDB extension to your database
+  hosts: all
+  become: true
+  tasks:
+
+    - name: Connect to a database on your PostgreSQL instance # psql -d "postgres://<username>:<password>@<host>:<port>/<database-name>"
+
+    - name: Add TimescaleDB to the database # CREATE EXTENSION IF NOT EXISTS timescaledb;
+
+    - name: Check that TimescaleDB is installed # \dx
+

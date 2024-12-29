@@ -1,5 +1,4 @@
 ---
-
 - name: Add known_host(s) (known_hosts module)
   hosts: all
   become: true
