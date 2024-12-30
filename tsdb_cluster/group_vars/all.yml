@@ -1,0 +1,22 @@
+tsdb_version: 2.11.2
+tsdb_path: "/opt/timescaledb"
+tsdb_setup_dir: "/opt/timescaledb/setup"
+tsdb_logs_dir: "/opt/timescaledb/logs"
+tsdb_backup_dir: "/opt/timescaledb/logs"
+tsdb_data_dir: "/mnt/timescaledb-data"
+tsdb_user: "postgres"
+tsdb_group: "postgres"
+tsdb_port: 45432
+
+## TSDB Nodes##
+tsdb_cluster_name: "mspplus-tsdb-stg-nuri"
+tsdb_access_node: "cl-mspstg-ts-01"
+tsdb_nodes:
+  - { ip: "70.222.9.195", host1: "cl-mspstg-ts-01", host2: "an" }
+  - { ip: "70.222.9.196", host1: "cl-mspstg-ts-02", host2: "dn1" }
+  - { ip: "70.222.9.197", host1: "cl-mspstg-ts-03", host2: "dn2" }
+  - { ip: "70.222.9.198", host1: "cl-mspstg-ts-04", host2: "dn3" }
+
+tsdb_files:
+  - "postgresql-14_14.9-1.pgdg20.04+1_amd64.deb"
+  - "timescaledb-2.11.2-postgresql-14_2.11.2~ubuntu20.04_amd64.deb"

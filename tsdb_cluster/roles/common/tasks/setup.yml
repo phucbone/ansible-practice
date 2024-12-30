@@ -1,0 +1,13 @@
+- name: Add hostnames to /etc/hosts
+  lineinfile:
+    path: /etc/hosts
+    line: "{{ item.ip }} {{ item.host1 }} {{ item.host2 }}"
+    state: present
+  with_items: "{{ tsdb_nodes }}"
+
+- name: Copy Setup files to /tmp
+  copy:
+    src: "files/{{ item }}"
+    dest: /tmp/
+    remote_src: no
+  with_items: "{{ tsdb_files }}"

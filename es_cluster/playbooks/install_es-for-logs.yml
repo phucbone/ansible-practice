@@ -1,0 +1,8 @@
+- name: Install Elasticsearch for Log Cluster
+  hosts: es-for-logs
+  become: yes
+  vars_files:
+    - ../group_vars/all.yml
+
+  roles:
+    - role: es-for-logs

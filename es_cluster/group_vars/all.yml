@@ -1,0 +1,22 @@
+es_version: 7.10.1
+es_download_path: "/opt/elasticsearch"
+es_data_dir: "/opt/elasticsearch/data"
+es_logs_dir: "/opt/elasticsearch/logs"
+es_user: "elasticsearch"
+es_group: "elasticsearch"
+
+## ES for LOGS ##
+es_cluster_name: "es-for-logs"
+es_master_node: "cl-mspstg-es-01"
+es_nodes:
+  - { name: "cl-mspstg-es-01", ip: "70.222.9.195" }
+  - { name: "cl-mspstg-es-02", ip: "70.222.9.196" }
+  - { name: "cl-mspstg-es-03", ip: "70.222.9.197" }
+
+## ES for DATA ##
+searches_cluster_name: "es-for-data"
+searches_master_node: "cl-mspstg-search-es01"
+searches_nodes:
+  - { name: "cl-mspstg-search-es01", ip: "70.222.9.198" }
+  - { name: "cl-mspstg-search-es02", ip: "70.222.9.199" }
+  - { name: "cl-mspstg-search-es03", ip: "70.222.9.200" }

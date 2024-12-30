@@ -1,0 +1,25 @@
+- name: Initialize database cluster
+  shell: "pg_createcluster 14 main --start -d {{ tsdb_data_dir }} --port={{ tsdb_port }}"
+
+- name: Configure postgresql.conf
+  lineinfile:
+    path: "{{ tsdb_data_dir }}/postgresql.conf"
+    line: "{{ item }}"
+    state: present
+  with_items:
+    - "listen_addresses = '*'"
+    - "port = {{ tsdb_port }}"
+    - "data_directory = '{{ tsdb_data_dir }}'"
+    - "shared_preload_libraries = 'timescaledb'"
+
+- name: Change systemd 'postgresql' to 'timescaledb'
+  command:
+    cmd: mv /etc/systemd/system/postgresql.service /etc/systemd/system/timescaledb.service
+
+- name: Reload systemd daemon
+  command: systemctl daemon-reload
+
+- name: Restart TimescaleDB
+  service:
+    name: timescaledb
+    state: restarted

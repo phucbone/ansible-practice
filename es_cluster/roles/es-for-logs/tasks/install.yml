@@ -1,0 +1,16 @@
+- name: Copy Elasticsearch binary
+  copy:
+    src: files/elasticsearch-{{ es_version }}-linux-x86_64.tar.gz
+    dest: /tmp/
+
+- name: Extract Elasticsearch binary
+  unarchive:
+    src: /tmp/elasticsearch-{{ es_version }}-linux-x86_64.tar.gz
+    dest: "{{ es_download_path }}"
+    remote_src: yes
+
+- name: Symlink Elasticsearch
+  file:
+    src: "{{ es_download_path }}/elasticsearch-{{ es_version }}"
+    dest: "{{ es_download_path }}/current"
+    state: link

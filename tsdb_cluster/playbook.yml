@@ -1,0 +1,24 @@
+- name: Setup & Install TimescaleDB 
+  hosts: all
+  become: yes
+  vars_files:
+    - ../group_vars/all.yml
+  roles:
+    - common
+
+- name: Configure & Start Access Node
+  hosts: access_node
+  become: yes
+  vars_files:
+    - ../group_vars/all.yml
+
+  roles:
+    - access_node
+
+- name: Configure & Start Access Node
+  hosts: data_nodes
+  become: yes
+  vars_files:
+    - ../group_vars/all.yml
+  roles:
+    - data_node

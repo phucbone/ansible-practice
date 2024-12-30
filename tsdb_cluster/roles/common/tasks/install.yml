@@ -1,0 +1,33 @@
+- name: Install TimescaleDB
+  command: "dpkg -i /tmp/{{ item }}"
+  with_items: "{{ tsdb_files }}"
+
+- name: Add TimescaleDB running user to sudo group
+  user:
+    name: "{{ tsdb_user }}"
+    groups: sudo
+    append: yes
+
+- name: Create a sudoers file for running user
+  copy:
+    dest: "/etc/sudoers.d/{{ tsdb_user }}"
+    content: |
+      "{{ tsdb_user }} ALL=(ALL) NOPASSWD:ALL"
+    owner: root
+    group: root
+    mode: '0440'
+  validate: "visudo -cf %s"
+
+- name: Ensure necessary directories exist
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ tsdb_user }}"
+    group: "{{ tsdb_group }}"
+    mode: '0755'
+  loop:
+    - "{{ tsdb_path }}"
+    - "{{ tsdb_setup_dir }}"
+    - "{{ tsdb_logs_dir }}"
+    - "{{ tsdb_backup_dir }}"
+    - "{{ tsdb_data_dir }}"

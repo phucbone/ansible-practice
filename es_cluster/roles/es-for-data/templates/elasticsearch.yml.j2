@@ -1,0 +1,7 @@
+cluster.name: {{ es_cluster_name }}
+cluster.initial_master_nodes: ["{{ searches_master_node }}"]
+node.name: {{ inventory_hostname }}
+path.data: {{ es_data_dir }}
+path.logs: {{ es_logs_dir }}
+network.host: 0.0.0.0
+discovery.seed_hosts: [{% for node in search_nodes %}"{{ node.ip }}"{% if not loop.last %}, {% endif %}{% endfor %}]

@@ -1,0 +1,23 @@
+- name: Configure elasticsearch.yml
+  template:
+    src: templates/elasticsearch.yml.j2
+    dest: "{{ es_download_path }}/current/config/elasticsearch.yml"
+
+- name: Configure JVM options
+  template:
+    src: templates/jvm.options.j2
+    dest: "{{ es_download_path }}/current/config/jvm.options"
+
+- name: Configure Elasticsearch service
+  template:
+    src: templates/elasticsearch.service.j2
+    dest: /etc/systemd/system/elasticsearch.service
+
+- name: Reload systemd daemon
+  command: systemctl daemon-reload
+
+- name: Enable and start Elasticsearch service
+  systemd:
+    name: elasticsearch
+    enabled: yes
+    state: started

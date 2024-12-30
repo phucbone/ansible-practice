@@ -1,0 +1,8 @@
+- name: Install Elasticsearch for Data Cluster
+  hosts: es-for-data
+  become: yes
+  vars_files:
+    - ../group_vars/all.yml
+
+  roles:
+    - role: es-for-data

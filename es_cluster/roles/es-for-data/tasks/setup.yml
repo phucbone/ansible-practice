@@ -1,0 +1,54 @@
+- name: Create group for running Elasticsearch
+  group:
+    name: "{{ es_group }}"
+    state: present
+
+- name: Create user for runnin Elasticsearch
+  user:
+    name: "{{ es_user }}"
+    group: "{{ es_group }}"
+    home: /home/"{{ es_user }}"
+    shell: /bin/bash
+    create_home: yes
+    state: present
+
+- name: Add ES running user to sudo group
+  user:
+    name: "{{ es_user }}"
+    groups: sudo
+    append: yes
+
+# - name: Configure sudoers for elasticsearch user
+#   lineinfile:
+#     path: /etc/sudoers
+#     regexp: '^elasticsearch ALL=\(ALL\) NOPASSWD:ALL'
+#     line: 'elasticsearch ALL=(ALL) NOPASSWD:ALL'
+#     state: present
+
+- name: Create a sudoers file for running user
+  copy:
+    dest: "/etc/sudoers.d/{{ es_user }}"
+    content: |
+      "{{ es_user }} ALL=(ALL) NOPASSWD:ALL"
+    owner: root
+    group: root
+    mode: '0440'
+  validate: "visudo -cf %s"
+
+- name: Ensure necessary directories exist
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ es_user }}"
+    group: "{{ es_group }}"
+    mode: '0755'
+  loop:
+    - "{{ es_data_dir }}"
+    - "{{ es_logs_dir }}"
+
+- name: Add hostnames to /etc/hosts
+  lineinfile:
+    path: /etc/hosts
+    line: "{{ item.ip }} {{ item.name }}"
+    state: present
+  with_items: "{{ es_nodes }}"
