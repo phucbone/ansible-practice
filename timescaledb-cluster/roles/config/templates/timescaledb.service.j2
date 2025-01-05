@@ -1,0 +1,17 @@
+[Unit]
+Description=TimescaleDB Service
+After=network.target
+
+[Service]
+User=postgres
+Group=postgres
+ExecStart=/usr/local/pgsql/bin/postgres -D {{ data_path }}
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=mixed
+TimeoutSec=0
+Restart=always
+LimitNOFILE=65535
+Environment=PGDATA={{ data_path }}
+
+[Install]
+WantedBy=multi-user.target

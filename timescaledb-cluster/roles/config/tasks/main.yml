@@ -1,0 +1,54 @@
+---
+- name: Deploy PostgreSQL configuration
+  ansible.builtin.template:
+    src: postgresql.conf.j2
+    dest: "{{ config_path }}/postgresql.conf"
+    owner: postgres
+    group: postgres
+    mode: '0644'
+  register: postgresql_conf_result
+  changed_when: postgresql_conf_result.changed
+
+- name: Deploy pg_hba configuration
+  ansible.builtin.template:
+    src: pg_hba.conf.j2
+    dest: "{{ data_path }}/pg_hba.conf"
+    owner: postgres
+    group: postgres
+    mode: '0644'
+  register: pg_hba_result
+  changed_when: pg_hba_result.changed
+
+- name: Deploy TimescaleDB configuration
+  ansible.builtin.template:
+    src: timescaledb.conf.j2
+    dest: "{{ config_path }}/timescaledb.conf"
+    owner: postgres
+    group: postgres
+    mode: '0644'
+  register: timescaledb_conf_result
+  changed_when: timescaledb_conf_result.changed
+
+- name: Create systemd service file for TimescaleDB
+  ansible.builtin.template:
+    src: timescaledb.service.j2
+    dest: /etc/systemd/system/timescaledb.service
+    owner: root
+    group: root
+    mode: '0644'
+  register: systemd_service_file_result
+  changed_when: systemd_service_file_result.changed
+
+- name: Reload systemd daemon
+  ansible.builtin.systemd:
+    daemon_reload: true
+  register: daemon_reload_result
+  changed_when: daemon_reload_result.rc == 0
+
+- name: Enable TimescaleDB service
+  ansible.builtin.systemd:
+    name: timescaledb
+    enabled: true
+    state: started
+  register: systemd_service_result
+  changed_when: systemd_service_result.changed

@@ -1,0 +1,20 @@
+---
+- name: Setup Elasticsearch Cluster
+  hosts: all
+  become: true
+  roles:
+    - setup
+
+- name: Install and Config Elasticsearch Master Node
+  hosts: master_node
+  become: true
+  roles:
+    - install
+    - config
+
+- name: Install and Config Elasticsearch Data Nodes
+  hosts: data_nodes
+  become: true
+  roles:
+    - install
+    - config

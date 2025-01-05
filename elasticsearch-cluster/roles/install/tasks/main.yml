@@ -1,0 +1,22 @@
+---
+- name: Upload Elasticsearch tarball
+  ansible.builtin.copy:
+    src: "{{ elasticsearch_tarball_url }}"
+    dest: "{{ setup_path }}/{{ elasticsearch_tarball }}"
+    owner: "{{ elasticsearch_user }}"
+    mode: '0644'
+
+- name: Extract Elasticsearch tarball
+  ansible.builtin.unarchive:
+    src: "{{ setup_path }}/{{ elasticsearch_tarball }}"
+    dest: "{{ elasticsearch_home }}"
+    owner: "{{ elasticsearch_user }}"
+    remote_src: true
+
+- name: Set Elasticsearch home ownership
+  ansible.builtin.file:
+    path: "{{ elasticsearch_home }}"
+    owner: "{{ elasticsearch_user }}"
+    group: "{{ elasticsearch_group }}"
+    state: directory
+    recurse: true

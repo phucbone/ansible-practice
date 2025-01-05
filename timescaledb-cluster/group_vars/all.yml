@@ -1,0 +1,20 @@
+#### Variables ###
+postgresql_version: 14.9
+
+# TimescaleDB paths
+timescaledb_home: /etc/timescaledb
+log_path: "{{ timescaledb_home }}/logs"
+config_path: "{{ timescaledb_home }}/config"
+setup_path: "{{ timescaledb_home }}/setup"
+data_path: /mnt/timescaledb-data
+
+cluster_name: mspplus-timescaledb-cluster
+
+timescaledb_user: postgres
+timescaledb_group: postgres
+
+# Hosts configuration
+hosts_entries:
+  - "192.168.1.6 node1"
+  - "192.168.1.102 node2"
+  - "192.168.1.103 node3"

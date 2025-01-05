@@ -1,0 +1,33 @@
+---
+- name: Install build dependencies
+  ansible.builtin.apt:
+    name:
+      - build-essential
+      - libssl-dev
+      - zlib1g-dev
+      - libreadline-dev
+      - libxml2-dev
+      - libxslt-dev
+      - libyaml-dev
+    state: present
+    update_cache: true
+  register: dependencies_result
+  changed_when: dependencies_result.changed
+
+- name: Extract TimescaleDB source
+  ansible.builtin.unarchive:
+    src: "{{ setup_path }}/timescaledb.tar.gz"
+    dest: "{{ timescaledb_home }}"
+    remote_src: true
+  register: unarchive_result
+  changed_when: unarchive_result.changed
+
+- name: Build TimescaleDB from source
+  ansible.builtin.shell: |
+    cd {{ timescaledb_home }}/timescaledb
+    ./bootstrap
+    cd build && make && make install
+  args:
+    executable: /bin/bash
+  register: build_result
+  changed_when: build_result.rc == 0

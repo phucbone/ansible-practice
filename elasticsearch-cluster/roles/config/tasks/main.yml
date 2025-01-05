@@ -1,0 +1,16 @@
+---
+- name: Configure Elasticsearch
+  ansible.builtin.template:
+    src: elasticsearch.yml.j2
+    dest: "{{ config_path }}/elasticsearch.yml"
+    owner: "{{ elasticsearch_user }}"
+    group: "{{ elasticsearch_group }}"
+    mode: '0644'
+
+- name: Configure JVM options
+  ansible.builtin.template:
+    src: jvm.options.j2
+    dest: "{{ config_path }}/jvm.options"
+    owner: "{{ elasticsearch_user }}"
+    group: "{{ elasticsearch_group }}"
+    mode: '0644'

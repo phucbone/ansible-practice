@@ -1,0 +1,60 @@
+---
+- name: Add cluster nodes to /etc/hosts
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    line: "{{ item }}"
+    state: present
+  loop: "{{ hosts_entries }}"
+  register: hosts_file_result
+  changed_when: hosts_file_result.changed
+
+- name: Create group for TimescaleDB
+  ansible.builtin.group:
+    name: "{{ tsdb_group }}"
+    state: present
+  register: timescaledb_group_result
+  changed_when: timescaledb_group_result.changed
+
+- name: Create user for TimescaleDB
+  ansible.builtin.user:
+    name: "{{ tsdb_user }}"
+    group: "{{ tsdb_group }}"
+    shell: /bin/bash
+    create_home: true
+    append: true
+  register: timescaledb_user_result
+  changed_when: timescaledb_user_result.changed
+
+- name: Add user to sudo group
+  ansible.builtin.user:
+    name: "{{ tsdb_user }}"
+    groups: sudo
+    append: true
+  register: timescaledb_add_sudo_result
+  changed_when: timescaledb_add_sudo_result.changed
+
+- name: Create sudoers file for TimescaleDB
+  ansible.builtin.copy:
+    content: "{{ tsdb_user }} ALL=(ALL) NOPASSWD:ALL"
+    dest: "/etc/sudoers.d/{{ tsdb_user }}"
+    owner: root
+    group: root
+    mode: '0440'
+  register: sudoers_result
+  changed_when: sudoers_result.changed
+
+- name: Create directories for TimescaleDB
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ tsdb_user }}"
+    group: "{{ tsdb_group }}"
+    mode: '0755'
+  with_items:
+    - "{{ timescaledb_home }}"
+    - "{{ log_path }}"
+    - "{{ config_path }}"
+    - "{{ setup_path }}"
+    - "{{ data_path }}"
+  register: directories_result
+  changed_when: directories_result.changed

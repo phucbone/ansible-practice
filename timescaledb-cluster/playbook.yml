@@ -1,0 +1,29 @@
+- name: Setup TimescaleDB Cluster
+  hosts: all
+  become: true
+  roles:
+    - setup
+
+- name: Install TimescaleDB
+  hosts: access_node
+  become: true
+  roles:
+    - install
+
+- name: Install TimescaleDB on Data Nodes
+  hosts: data_nodes
+  become: true
+  roles:
+    - install
+
+- name: Configure TimescaleDB
+  hosts: access_node
+  become: true
+  roles:
+    - config
+
+- name: Configure TimescaleDB on Data Nodes
+  hosts: data_nodes
+  become: true
+  roles:
+    - config

@@ -1,0 +1,21 @@
+# PostgreSQL Configuration for TimescaleDB
+
+listen_addresses = '*'
+port = 45432
+max_connections = 500
+shared_buffers = 128MB
+timescaledb.telemetry_level = off
+
+# Paths
+data_directory = '{{ data_path }}'
+logging_collector = on
+log_directory = '{{ log_path }}'
+log_filename = 'postgresql-%a.log'
+log_truncate_on_rotation = on
+log_rotation_age = 1d
+log_rotation_size = 10MB
+
+# Additional Settings
+log_min_messages = warning
+log_min_error_statement = error
+log_line_prefix = '%t [%p]: [%l-1] user=%u,db=%d,app=%a,client=%h '

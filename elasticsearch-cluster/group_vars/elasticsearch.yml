@@ -1,0 +1,35 @@
+#### Variables ###
+# Cluster configuration
+cluster_name: es-for-logs
+node_master: node1
+seed_hosts:
+  - node1
+  - node2
+  - node3
+
+# Elasticsearch paths
+elasticsearch_user: elasticsearch
+elasticsearch_group: elasticsearch
+elasticsearch_home: /etc/elasticsearch
+log_path: "{{ elasticsearch_home }}/logs"
+config_path: "{{ elasticsearch_home }}/config"
+setup_path: "{{ elasticsearch_home }}/setup"
+data_path: /opt/elasticsearch-data
+
+# Elasticsearch version and source
+elasticsearch_version: 7.10.1
+elasticsearch_tarball: elasticsearch-{{ elasticsearch_version }}-linux-x86_64.tar.gz
+elasticsearch_tarball_url: file/{{ elasticsearch_tarball }}
+
+# JVM options
+jvm_xms: 4g
+jvm_xmx: 4g
+
+# Sudo configuration
+sudoers_file: "/etc/sudoers.d/{{ elasticsearch_user }}"
+
+# Hosts configuration
+hosts_entries:
+  - "192.168.1.6 node1"
+  - "192.168.1.102 node2"
+  - "192.168.1.103 node3"

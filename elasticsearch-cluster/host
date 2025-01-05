@@ -1,0 +1,6 @@
+[master_node]
+node1 ansible_host=192.168.1.6
+
+[data_nodes]
+node2 ansible_host=192.168.1.102
+node3 ansible_host=192.168.1.103
